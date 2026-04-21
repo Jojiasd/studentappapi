@@ -9,11 +9,11 @@
   <div class="container">
     <h1>📚 Student Post System (Blob Storage)</h1>
 
-    <div class="form">
-      <input id="name" placeholder="Student Name">
-      <input id="post" placeholder="Student Post">
-      <button onclick="addStudent()">POST</button>
-    </div>
+    <form class="form" onsubmit="addStudent(); return false;">
+      <input id="name" placeholder="Student Name" required>
+      <input id="post" placeholder="Student Post" required>
+      <button type="submit">POST</button>
+    </form>
 
     <h2>All Posts</h2>
     <div id="list"></div>
