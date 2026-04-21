@@ -1,23 +1,19 @@
-import { put, list, head } from "@vercel/blob";
+import { put, list } from "@vercel/blob";
+
+const fileName = "students.json";
+
+async function loadStudents() {
+  const files = await list();
+
+  const file = files.blobs.find(b => b.pathname === fileName);
+
+  if (!file) return [];
+
+  const res = await fetch(file.url);
+  return await res.json();
+}
 
 export default async function handler(req, res) {
-
-  const fileName = "students.json";
-
-  // Helper: load students safely
-  async function loadStudents() {
-    try {
-      const files = await list({ prefix: fileName });
-
-      const file = files.blobs?.[0];
-      if (!file) return [];
-
-      const data = await fetch(file.url);
-      return await data.json();
-    } catch (err) {
-      return [];
-    }
-  }
 
   // GET
   if (req.method === "GET") {
@@ -65,5 +61,5 @@ export default async function handler(req, res) {
     }
   }
 
-  res.status(405).json({ message: "Method not allowed" });
+  return res.status(405).json({ message: "Method not allowed" });
 }
