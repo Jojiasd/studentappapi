@@ -46,12 +46,11 @@ export default async function handler(req, res) {
 
       students.push(newStudent);
 
-      await put(fileName, JSON.stringify(students), {
-        access: "public",
-        contentType: "application/json",
-        overwrite: true
-      });
-
+     
+await put(fileName, JSON.stringify(students), {
+  contentType: "application/json",
+  overwrite: true
+});
       return res.status(201).json(newStudent);
 
     } catch (err) {
