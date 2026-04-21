@@ -1,49 +1,47 @@
-import { put, list } from "@vercel/blob";
+import { put, list, head } from "@vercel/blob";
 
 export default async function handler(req, res) {
 
   const fileName = "students.json";
 
-  // GET ALL STUDENTS
-  if (req.method === "GET") {
+  // Helper: load students safely
+  async function loadStudents() {
     try {
-      const blobs = await list();
-      const file = blobs.blobs.find(b => b.pathname === fileName);
+      const files = await list({ prefix: fileName });
 
-      if (!file) {
-        return res.status(200).json([]);
-      }
+      const file = files.blobs?.[0];
+      if (!file) return [];
 
       const data = await fetch(file.url);
-      const json = await data.json();
-
-      return res.status(200).json(json);
+      return await data.json();
     } catch (err) {
-      return res.status(500).json({ error: err.message });
+      return [];
     }
   }
 
-  // POST NEW STUDENT
+  // GET
+  if (req.method === "GET") {
+    const students = await loadStudents();
+    return res.status(200).json(students);
+  }
+
+  // POST
   if (req.method === "POST") {
     try {
-      const { name, post } = req.body;
+      const body = typeof req.body === "string"
+        ? JSON.parse(req.body)
+        : req.body;
+
+      const { name, post } = body || {};
 
       if (!name || !post) {
-        return res.status(400).json({ message: "Name & post required" });
+        return res.status(400).json({
+          message: "Name and post required"
+        });
       }
 
-      // Get existing data
-      let students = [];
+      const students = await loadStudents();
 
-      const blobs = await list();
-      const file = blobs.blobs.find(b => b.pathname === fileName);
-
-      if (file) {
-        const data = await fetch(file.url);
-        students = await data.json();
-      }
-
-      // Add new
       const newStudent = {
         id: Date.now(),
         name,
@@ -52,17 +50,18 @@ export default async function handler(req, res) {
 
       students.push(newStudent);
 
-      // Save back to Blob
-      const blob = await put(fileName, JSON.stringify(students), {
+      await put(fileName, JSON.stringify(students), {
         access: "public",
         contentType: "application/json",
         overwrite: true
       });
 
-      return res.status(200).json(newStudent);
+      return res.status(201).json(newStudent);
 
     } catch (err) {
-      return res.status(500).json({ error: err.message });
+      return res.status(500).json({
+        error: err.message
+      });
     }
   }
 
