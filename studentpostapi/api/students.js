@@ -48,6 +48,7 @@ export default async function handler(req, res) {
 
      
 await put(fileName, JSON.stringify(students), {
+  access: "public",
   contentType: "application/json",
   overwrite: true
 });
